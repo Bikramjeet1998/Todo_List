@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>my to do</title>
+    <style>
+      .todo-list {
+        list-style: none;
+      }
+
+      .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        background-color: bisque;
+        height: 100vh;
+      }
+
+      ul > li {
+        display: flex;
+        justify-content: space-between;
+        width: 250px;
+        line-height: 40px;
+      }
+
+      .strike {
+        text-decoration: line-through;
+        color: red;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <dialog class="edit-dialog">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <h2>Edit</h2>
+          <button class="close-dailog">X</button>
+        </div>
+        <div>
+          <input class="todo-input-edit" type="text" value="" />
+          <input class="todo-input-id" type="hidden" value="" />
+          <br /><br />
+          <button class="todo-button-update">Update</button>
+          <button class="close-dailog">Cancel</button>
+        </div>
+      </dialog>
+
+      <div>
+        <input class="todo-input" type="text" value="" />
+        <button class="todo-button">Add</button>
+        <button class="clearAll-button">Clear All</button>
+      </div>
+      <div>
+        <h2 class="output"></h2>
+      </div>
+
+      <div class="todoList"></div>
+    </div>
+    <script>
+      const TODOS_KEY = "todos";
+
+      const getDataFromLocalStorage = (key) => {
+        let string = localStorage.getItem(key);
+        if (string) {
+          return JSON.parse(string);
+        }
+        return [];
+      };
+
+      const setDataInLocalStorage = (key, value) => {
+        let string = JSON.stringify(value);
+        localStorage.setItem(key, string);
+      };
+
+      const updateTodosObjByID = (orignalArray, id, key, value) => {
+        let updatedArray = orignalArray.map(function (item) {
+          if (item.id == id) {
+            return {
+              ...item,
+              [key]: value,
+            };
+          }
+          return item;
+        });
+        return updatedArray;
+      };
+
+      let todos = getDataFromLocalStorage(TODOS_KEY);
+
+      const todoInput = document.querySelector(".todo-input");
+      const todoButton = document.querySelector(".todo-button");
+      const clearAllButton = document.querySelector(".clearAll-button");
+      let ulElement = document.querySelector(".output");
+
+      let dialogElement = document.querySelector(".edit-dialog");
+      let dialogEditInput = document.querySelector(".todo-input-edit");
+      let dialogEditInputID = document.querySelector(".todo-input-id");
+
+      function renderList() {
+        let todosJSON = getDataFromLocalStorage(TODOS_KEY);
+        let listItems = "<ul>";
+        for (let listItem of todosJSON) {
+          listItems += `<li>
+                <div>
+
+                  <input class="item" type='checkbox' name="" id="item${
+                    listItem.id
+                  }" ${listItem.isChecked ? "checked" : ""}  value="${
+            listItem.id
+          }"/>
+
+                  <label class="${
+                    listItem.isChecked ? "strike" : ""
+                  }" for="item${listItem.id}">${listItem.label}</label>
+                  </div>
+                  <div><button class="edit-btn" data-item="${
+                    listItem.id
+                  }">Edit</button>
+                        <button class="del-btn" data-item="${
+                          listItem.id
+                        }">Delete</button>         
+                      </div>
+                   </li>`;
+        }
+        listItems += "</ul>";
+
+        ulElement.innerHTML = listItems;
+
+        let delbtn = document.querySelectorAll(".del-btn");
+        delbtn.forEach((btn) => {
+          btn.addEventListener("click", function (event) {
+            let array = todos.filter(function (obj) {
+              if (obj.id != event.target.getAttribute("data-item")) {
+                return obj;
+              }
+            });
+
+            setDataInLocalStorage(TODOS_KEY, array);
+
+            todos = array;
+            renderList();
+          });
+        });
+
+        let editBtn = document.querySelectorAll(".edit-btn");
+        editBtn.forEach((btn) => {
+          btn.addEventListener("click", function (event) {
+            // Showing modal
+            dialogElement.open = true;
+
+            let findObj = todos.find(function (obj) {
+              if (obj.id == event.target.getAttribute("data-item")) {
+                return obj;
+              }
+            });
+
+            dialogEditInput.value = findObj.label;
+            dialogEditInputID.value = findObj.id;
+          });
+        });
+
+        const allCheckBox = document.querySelectorAll(".item");
+        allCheckBox.forEach((check) => {
+          check.addEventListener("change", function (myEvent) {
+            let selectedTodoId = myEvent.target.value;
+            let newTodos = updateTodosObjByID(
+              todos,
+              selectedTodoId,
+              "isChecked",
+              myEvent.target.checked
+            );
+            todos = newTodos;
+            setDataInLocalStorage(TODOS_KEY, newTodos);
+
+            if (myEvent.target.checked) {
+              myEvent.target.nextElementSibling.classList.add("strike");
+            } else {
+              myEvent.target.nextElementSibling.classList.remove("strike");
+            }
+          });
+        });
+      }
+
+      renderList();
+
+      // Close dailog
+      let closeDailogBtn = document.querySelectorAll(".close-dailog");
+      closeDailogBtn.forEach((btn) => {
+        btn.addEventListener("click", function () {
+          dialogElement.open = false;
+        });
+      });
+
+      let updateBtn = document.querySelector(".todo-button-update");
+
+      updateBtn.addEventListener("click", function () {
+        // console.log(dialogEditInputID.value, dialogEditInput.value);
+
+        let newTodos = todos.map(function (todoItem) {
+          if (todoItem.id == dialogEditInputID.value) {
+            return {
+              ...todoItem,
+              label: dialogEditInput.value,
+            };
+          }
+
+          return todoItem;
+        });
+
+        todos = newTodos;
+        setDataInLocalStorage(TODOS_KEY, newTodos);
+        dialogElement.open = false;
+        renderList();
+      });
+
+      todoButton.addEventListener("click", function () {
+        let lastObj = todos.length > 0 ? todos[todos.length - 1] : null;
+
+        todos.push({
+          id: lastObj ? lastObj.id + 1 : 1,
+          label: todoInput.value,
+          isChecked: false,
+        });
+
+        setDataInLocalStorage(TODOS_KEY, todos);
+        todoInput.value = " ";
+
+        renderList();
+      });
+
+      clearAllButton.addEventListener("click", function () {
+        if (confirm("Are you sure want to delete ? ")) {
+          let newValues = getDataFromLocalStorage(TODOS_KEY);
+          // console.log(newValues);
+          let newarray = newValues.filter((obj) => {
+            if (!obj.isChecked) {
+              return obj;
+            }
+          });
+          setDataInLocalStorage(TODOS_KEY, newarray);
+          todos = newarray;
+          renderList();
+          console.log(newarray);
+        }
+      });
+    </script>
+  </body>
+</html>
