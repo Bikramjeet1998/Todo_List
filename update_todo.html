@@ -110,26 +110,26 @@
         let listItems = "<ul>";
         for (let listItem of todosJSON) {
           listItems += `<li>
-                <div>
+                      <div>
 
-                  <input class="item" type='checkbox' name="" id="item${
-                    listItem.id
-                  }" ${listItem.isChecked ? "checked" : ""}  value="${
+                        <input class="item" type='checkbox' name="" id="item${
+                          listItem.id
+                        }" ${listItem.isChecked ? "checked" : ""}  value="${
             listItem.id
           }"/>
 
-                  <label class="${
-                    listItem.isChecked ? "strike" : ""
-                  }" for="item${listItem.id}">${listItem.label}</label>
-                  </div>
-                  <div><button class="edit-btn" data-item="${
-                    listItem.id
-                  }">Edit</button>
-                        <button class="del-btn" data-item="${
+                        <label class="${
+                          listItem.isChecked ? "strike" : ""
+                        }" for="item${listItem.id}">${listItem.label}</label>
+                        </div>
+                        <div><button class="edit-btn" data-item="${
                           listItem.id
-                        }">Delete</button>         
-                      </div>
-                   </li>`;
+                        }">Edit</button>
+                              <button class="del-btn" data-item="${
+                                listItem.id
+                              }">Delete</button>
+                            </div>
+                         </li>`;
         }
         listItems += "</ul>";
 
@@ -180,12 +180,12 @@
             );
             todos = newTodos;
             setDataInLocalStorage(TODOS_KEY, newTodos);
-
-            if (myEvent.target.checked) {
-              myEvent.target.nextElementSibling.classList.add("strike");
-            } else {
-              myEvent.target.nextElementSibling.classList.remove("strike");
-            }
+            renderList();
+            // if (myEvent.target.checked) {
+            //   myEvent.target.nextElementSibling.classList.add("strike");
+            // } else {
+            //   myEvent.target.nextElementSibling.classList.remove("strike");
+            // }
           });
         });
       }
@@ -203,21 +203,30 @@
       let updateBtn = document.querySelector(".todo-button-update");
 
       updateBtn.addEventListener("click", function () {
+        console.log(dialogEditInputID);
         // console.log(dialogEditInputID.value, dialogEditInput.value);
+        let value = dialogEditInput.value;
+        const updateLabel = updateTodosObjByID(
+          todos,
+          dialogEditInputID.value,
+          "label",
+          value
+        );
 
-        let newTodos = todos.map(function (todoItem) {
-          if (todoItem.id == dialogEditInputID.value) {
-            return {
-              ...todoItem,
-              label: dialogEditInput.value,
-            };
-          }
+        todos = updateLabel;
+        // let newTodos = todos.map(function (todoItem) {
+        //   if (todoItem.id == dialogEditInputID.value) {
+        //     return {
+        //       ...todoItem,
+        //       label: dialogEditInput.value,
+        //     };
+        //   }
 
-          return todoItem;
-        });
+        //   return todoItem;
+        // });
 
-        todos = newTodos;
-        setDataInLocalStorage(TODOS_KEY, newTodos);
+        // todos = newTodos;
+        setDataInLocalStorage(TODOS_KEY, updateLabel);
         dialogElement.open = false;
         renderList();
       });
