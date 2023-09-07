@@ -29,6 +29,9 @@
         text-decoration: line-through;
         color: red;
       }
+      .errorMsg {
+        color: red;
+      }
     </style>
   </head>
 
@@ -55,6 +58,7 @@
       </dialog>
 
       <div>
+        <div class="errorMsg"></div>
         <input class="todo-input" type="text" value="" />
         <button class="todo-button">Add</button>
         <button class="clearAll-button">Clear All</button>
@@ -91,11 +95,15 @@
           }
           return item;
         });
+
+        todos = updatedArray;
+        setDataInLocalStorage(TODOS_KEY, updatedArray);
+        renderList();
         return updatedArray;
       };
 
       let todos = getDataFromLocalStorage(TODOS_KEY);
-
+      const errorMessage = document.querySelector(".errorMsg");
       const todoInput = document.querySelector(".todo-input");
       const todoButton = document.querySelector(".todo-button");
       const clearAllButton = document.querySelector(".clearAll-button");
@@ -178,9 +186,9 @@
               "isChecked",
               myEvent.target.checked
             );
-            todos = newTodos;
-            setDataInLocalStorage(TODOS_KEY, newTodos);
-            renderList();
+            // todos = newTodos;
+            // setDataInLocalStorage(TODOS_KEY, newTodos);
+            // renderList();
             // if (myEvent.target.checked) {
             //   myEvent.target.nextElementSibling.classList.add("strike");
             // } else {
@@ -226,9 +234,17 @@
         // });
 
         // todos = newTodos;
-        setDataInLocalStorage(TODOS_KEY, updateLabel);
+        // setDataInLocalStorage(TODOS_KEY, updateLabel);
         dialogElement.open = false;
-        renderList();
+        // renderList();
+      });
+
+      todoInput.addEventListener("keyup", function () {
+        // console.log(todoInput.value);
+        if (todoInput.value.length <= 4 || todoInput.value.length > 8) {
+          // console.log("something went wrong");
+          errorMessage.innerHTML = "something went wrong";
+        }
       });
 
       todoButton.addEventListener("click", function () {
